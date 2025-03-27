@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Система управления кампаниями{% endblock %}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        {% if user %}
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon">📧</span>
+                <span class="logo-text">Менеджер кампаний</span>
+            </div>
+            <nav class="main-nav">
+                <a href="/campaigns" class="nav-link">Кампании</a>
+            </nav>
+            <div class="user-menu">
+                <span class="user-name">{{ user.email }}</span>
+                <a href="/auth/logout" class="logout-btn">Выйти</a>
+            </div>
+        </header>
+        {% endif %}
+
+        <main class="app-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="app-footer">
+            <p>&copy; 2024 Система управления кампаниями</p>
+        </footer>
+    </div>
+    
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

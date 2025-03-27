@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+
+{% block title %}Кампании - Система управления кампаниями{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Управление кампаниями</h1>
+  <a href="/campaigns/create" class="btn btn-primary create-campaign-btn">
+      <span class="btn-icon">+</span>
+      Создать новую кампанию
+  </a>
+</div>
+
+<div class="campaigns-grid">
+  {% for id, campaign in campaigns.items() %}
+  <div class="campaign-card" data-id="{{ campaign.id }}">
+      <div class="campaign-header">
+          <h2 class="campaign-title">{{ campaign.name }}</h2>
+          <div class="campaign-status status-{{ campaign.status }}">
+              {% if campaign.status == "running" %}Запущена{% else %}Остановлена{% endif %}
+          </div>
+      </div>
+
+      <div class="campaign-info">
+          <div class="info-item">
+              <span class="info-label">ID:</span>
+              <span class="info-value">{{ campaign.id }}</span>
+          </div>
+          <div class="info-item">
+              <span class="info-label">Создана:</span>
+              <span class="info-value">{{ campaign.created_at|replace("T", " ")|truncate(16, True, "") }}</span>
+          </div>
+      </div>
+
+      <div class="campaign-actions">
+          <button class="btn btn-toggle" data-action="toggle" data-status="{{ campaign.status }}">
+              {% if campaign.status == "running" %}
+              Остановить кампанию
+              {% else %}
+              Запустить кампанию
+              {% endif %}
+          </button>
+          <a href="/campaigns/{{ campaign.id }}/edit" class="btn btn-secondary">
+              Редактировать
+          </a>
+      </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h2>Пока нет кампаний</h2>
+      <p>Создайте свою первую кампанию, чтобы начать</p>
+      <a href="/campaigns/create" class="btn btn-primary">Создать кампанию</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle campaign status
+  document.querySelectorAll('.btn-toggle').forEach(button => {
+      button.addEventListener('click', async function() {
+          const campaignId = this.closest('.campaign-card').dataset.id;
+          const response = await fetch(`/campaigns/${campaignId}/toggle`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              }
+          });
+
+          if (response.ok) {
+              const data = await response.json();
+              const card = this.closest('.campaign-card');
+              const statusElement = card.querySelector('.campaign-status');
+
+              // Update status display
+              statusElement.className = `campaign-status status-${data.status}`;
+              statusElement.textContent = data.status === 'running' ? 'Запущена' : 'Остановлена';
+
+              // Update button text
+              this.textContent = data.status === 'running' ? 'Остановить кампанию' : 'Запустить кампанию';
+              this.dataset.status = data.status;
+
+              // Add animation
+              card.classList.add('status-changed');
+              setTimeout(() => {
+                  card.classList.remove('status-changed');
+              }, 1000);
+          }
+      });
+  });
+});
+</script>
+{% endblock %}
+

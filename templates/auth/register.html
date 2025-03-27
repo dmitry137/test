@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}Регистрация - Система управления кампаниями{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+      <div class="auth-header">
+          <h1 class="auth-title">Регистрация</h1>
+          <p class="auth-subtitle">Создайте новый аккаунт</p>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-error">
+          {{ error }}
+      </div>
+      {% endif %}
+
+      <form class="auth-form" method="post" action="/auth/register">
+          <div class="form-group">
+              <label for="full_name">Полное имя</label>
+              <input type="text" id="full_name" name="full_name" required
+                     placeholder="Введите ваше полное имя" autocomplete="name">
+          </div>
+
+          <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" required
+                     placeholder="Введите ваш email" autocomplete="email">
+          </div>
+
+          <div class="form-group">
+              <label for="password">Пароль</label>
+              <input type="password" id="password" name="password" required
+                     placeholder="Создайте пароль" autocomplete="new-password">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+              Создать аккаунт
+          </button>
+      </form>
+
+      <div class="auth-footer">
+          <p>Уже есть аккаунт? <a href="/auth/login" class="auth-link">Войти</a></p>
+      </div>
+  </div>
+</div>
+{% endblock %}
+

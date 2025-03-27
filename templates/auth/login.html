@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block title %}Вход - Система управления кампаниями{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+      <div class="auth-header">
+          <h1 class="auth-title">Вход</h1>
+          <p class="auth-subtitle">Войдите в свой аккаунт</p>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-error">
+          {{ error }}
+      </div>
+      {% endif %}
+
+      <form class="auth-form" method="post" action="/auth/login">
+          <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" required
+                     placeholder="Введите ваш email" autocomplete="email">
+          </div>
+
+          <div class="form-group">
+              <label for="password">Пароль</label>
+              <input type="password" id="password" name="password" required
+                     placeholder="Введите ваш пароль" autocomplete="current-password">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+              Войти
+          </button>
+      </form>
+
+      <div class="auth-footer">
+          <p>Нет аккаунта? <a href="/auth/register" class="auth-link">Зарегистрироваться</a></p>
+      </div>
+  </div>
+</div>
+{% endblock %}
+

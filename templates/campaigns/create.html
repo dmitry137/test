@@ -1,0 +1,639 @@
+{% extends "layout.html" %}
+
+{% block title %}Создание кампании - Система управления кампаниями{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Создание новой кампании</h1>
+  <a href="/campaigns" class="btn btn-secondary">
+      Назад к кампаниям
+  </a>
+</div>
+
+<form class="campaign-form" method="post" action="/campaigns/create">
+  <div class="form-section">
+      <div class="section-header">
+          <h2 class="section-title">Детали кампании</h2>
+      </div>
+      <div class="section-content">
+          <div class="form-group">
+              <label for="name">Название кампании</label>
+              <input type="text" id="name" name="name" required
+                     placeholder="Введите название кампании">
+          </div>
+      </div>
+  </div>
+
+  <!-- Sending Settings -->
+  <div class="form-section collapsible">
+      <div class="section-header">
+          <h2 class="section-title">Настройки отправки</h2>
+          <button type="button" class="btn-collapse" aria-label="Toggle section">
+              <span class="collapse-icon">▼</span>
+          </button>
+      </div>
+      <div class="section-content">
+          <!-- Email Settings -->
+          <div class="subsection">
+              <h3 class="subsection-title">Email</h3>
+              <div class="form-group">
+                  <label for="password_mail">PASSWORD_MAIL</label>
+                  <input type="password" id="password_mail" name="password_mail"
+                         placeholder="Пароль приложения для email">
+              </div>
+              <div class="form-group">
+                  <label for="sender_mail">SENDER_MAIL</label>
+                  <input type="email" id="sender_mail" name="sender_mail"
+                         placeholder="Email отправителя">
+              </div>
+              <div class="form-group">
+                  <label for="subject">SUBJECT</label>
+                  <input type="text" id="subject" name="subject"
+                         placeholder="Тема письма">
+              </div>
+          </div>
+
+          <!-- Telegram Settings -->
+          <div class="subsection">
+              <h3 class="subsection-title">Telegram</h3>
+              <div class="form-group">
+                  <label for="bot_token">BOT_TOKEN</label>
+                  <input type="text" id="bot_token" name="bot_token"
+                         placeholder="Токен бота Telegram">
+              </div>
+              <div class="form-group">
+                  <label for="target_chat_id">TARGET_CHAT_ID</label>
+                  <div class="input-with-button">
+                      <input type="text" id="target_chat_id" name="target_chat_id"
+                             placeholder="ID чата">
+                      <button type="button" class="btn-add" id="add-chat-id">+</button>
+                  </div>
+                  <div id="chat-ids-container" class="multi-input-container">
+                      <!-- Additional chat IDs will be added here -->
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="file_order">FILE_ORDER</label>
+                  <textarea id="file_order" name="file_order"
+                            placeholder="Порядок отправки файлов"></textarea>
+              </div>
+          </div>
+
+          <!-- S3 Settings -->
+          <div class="subsection">
+              <h3 class="subsection-title">S3</h3>
+              <div class="form-group">
+                  <label for="send_timeout">SEND_TIMEOUT</label>
+                  <input type="number" id="send_timeout" name="send_timeout"
+                         min="5" value="30"
+                         placeholder="Интервал между опросами S3 (мин. 5)">
+              </div>
+              <div class="form-group">
+                  <label for="delay_send">DELAY_SEND</label>
+                  <input type="number" id="delay_send" name="delay_send"
+                         min="1" value="5"
+                         placeholder="Задержка между загрузкой и отправкой (мин. 1)">
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Message Settings -->
+  <div class="form-section collapsible">
+      <div class="section-header">
+          <h2 class="section-title">Настройки сообщений</h2>
+          <button type="button" class="btn-collapse" aria-label="Toggle section">
+              <span class="collapse-icon">▼</span>
+          </button>
+      </div>
+      <div class="section-content">
+          <!-- Recipients List -->
+          <div class="subsection">
+              <h3 class="subsection-title">Список получателей</h3>
+              <div class="form-group">
+                  <label for="recipient_list">Список получателей</label>
+                  <select id="recipient_list" class="form-select">
+                      <option value="">Выберите список получателей</option>
+                      {% for list_name, recipients in recipient_lists.items() %}
+                      <option value="{{ list_name }}">{{ list_name|capitalize }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+
+              <div class="form-group">
+                  <button type="button" class="btn btn-secondary" id="upload-recipients-btn">
+                      Загрузить новых получателей
+                  </button>
+                  <div id="upload-recipients-form" class="upload-form" style="display: none;">
+                      <div class="form-group">
+                          <label for="recipients-file">Загрузить файл (CSV/TXT)</label>
+                          <input type="file" id="recipients-file" accept=".csv,.txt">
+                      </div>
+                      <div class="form-group">
+                          <label for="list-name">Название списка</label>
+                          <input type="text" id="list-name" placeholder="Введите название списка">
+                      </div>
+                      <button type="button" class="btn btn-primary" id="submit-recipients">
+                          Загрузить
+                      </button>
+                  </div>
+              </div>
+
+              <div class="form-group">
+                  <label for="recipients-table">Таблица получателей</label>
+                  <button type="button" id="toggle-recipients-table">
+                      Показать получателей
+                  </button>
+                  <div id="recipients-table-container" style="display: none;">
+                      <table class="data-table" id="recipients-table">
+                          <thead>
+                              <tr>
+                                  <th>Имя</th>
+                                  <th>Email</th>
+                                  <th>Описание</th>
+                                  <th>Действия</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <!-- Recipients will be added here -->
+                          </tbody>
+                      </table>
+                      <button type="button" class="btn btn-secondary" id="add-recipient-row">
+                          Добавить получателя
+                      </button>
+                  </div>
+              </div>
+
+              <!-- Hidden input to store recipients JSON -->
+              <input type="hidden" id="recipients" name="recipients" value="[]">
+          </div>
+
+          <!-- Email Template -->
+          <div class="subsection">
+              <h3 class="subsection-title">Шаблон Email</h3>
+              <div class="form-group">
+                  <label for="email_template_select">Шаблон</label>
+                  <select id="email_template_select" class="form-select">
+                      <option value="">Выберите шаблон</option>
+                      {% for template_name, template in email_templates.items() %}
+                      <option value="{{ template_name }}">{{ template_name|capitalize }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+
+              <div class="form-group">
+                  <label for="email_template">Содержание сообщения</label>
+                  <textarea id="email_template" name="email_template" rows="8"
+                            placeholder="Введите содержание шаблона email"></textarea>
+              </div>
+
+              <div class="form-group">
+                  <button type="button" class="btn btn-secondary" id="upload-email-template-btn">
+                      Загрузить новый шаблон
+                  </button>
+                  <div id="upload-email-template-form" class="upload-form" style="display: none;">
+                      <div class="form-group">
+                          <label for="email-template-file">Загрузить файл (TXT)</label>
+                          <input type="file" id="email-template-file" accept=".txt">
+                      </div>
+                      <div class="form-group">
+                          <label for="email-template-name">Название шаблона</label>
+                          <input type="text" id="email-template-name" placeholder="Введите название шаблона">
+                      </div>
+                      <button type="button" class="btn btn-primary" id="submit-email-template">
+                          Загрузить
+                      </button>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Telegram Template -->
+          <div class="subsection">
+              <h3 class="subsection-title">Шаблон Telegram</h3>
+              <div class="form-group">
+                  <label for="telegram_template_select">Шаблон</label>
+                  <select id="telegram_template_select" class="form-select">
+                      <option value="">Выберите шаблон</option>
+                      {% for template_name, template in telegram_templates.items() %}
+                      <option value="{{ template_name }}">{{ template_name|capitalize }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+
+              <div class="form-group">
+                  <label for="telegram_template">Содержание сообщения</label>
+                  <textarea id="telegram_template" name="telegram_template" rows="8"
+                            placeholder="Введите содержание шаблона telegram"></textarea>
+              </div>
+
+              <div class="form-group">
+                  <button type="button" class="btn btn-secondary" id="upload-telegram-template-btn">
+                      Загрузить новый шаблон
+                  </button>
+                  <div id="upload-telegram-template-form" class="upload-form" style="display: none;">
+                      <div class="form-group">
+                          <label for="telegram-template-file">Загрузить файл (TXT)</label>
+                          <input type="file" id="telegram-template-file" accept=".txt">
+                      </div>
+                      <div class="form-group">
+                          <label for="telegram-template-name">Название шаблона</label>
+                          <input type="text" id="telegram-template-name" placeholder="Введите название шаблона">
+                      </div>
+                      <button type="button" class="btn btn-primary" id="submit-telegram-template">
+                          Загрузить
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="form-actions">
+      <a href="/campaigns" class="btn btn-secondary">Назад</a>
+      <button type="submit" class="btn btn-primary">Создать кампанию</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle collapsible sections
+  document.querySelectorAll('.btn-collapse').forEach(button => {
+      button.addEventListener('click', function() {
+          const section = this.closest('.form-section, .subsection');
+          const content = section.querySelector('.section-content') ||
+                          this.parentElement.nextElementSibling;
+          const icon = this.querySelector('.collapse-icon');
+
+          if (content.style.display === 'none') {
+              content.style.display = 'block';
+              if (icon) icon.textContent = '▼';
+              section.classList.remove('collapsed');
+          } else {
+              content.style.display = 'none';
+              if (icon) icon.textContent = '►';
+              section.classList.add('collapsed');
+          }
+      });
+  });
+
+  // Toggle recipients table
+  document.getElementById('toggle-recipients-table').addEventListener('click', function() {
+      const container = document.getElementById('recipients-table-container');
+      if (container.style.display === 'none') {
+          container.style.display = 'block';
+          this.textContent = 'Скрыть получателей';
+      } else {
+          container.style.display = 'none';
+          this.textContent = 'Показать получателей';
+      }
+  });
+
+  // Add chat ID
+  document.getElementById('add-chat-id').addEventListener('click', function() {
+      const container = document.getElementById('chat-ids-container');
+      const input = document.createElement('div');
+      input.className = 'multi-input-item';
+      input.innerHTML = `
+          <input type="text" class="additional-chat-id" placeholder="Дополнительный ID чата">
+          <button type="button" class="btn-remove">×</button>
+      `;
+      container.appendChild(input);
+
+      // Add remove event listener
+      input.querySelector('.btn-remove').addEventListener('click', function() {
+          container.removeChild(input);
+          updateChatIds();
+      });
+
+      updateChatIds();
+  });
+
+  function updateChatIds() {
+      const mainInput = document.getElementById('target_chat_id');
+      const additionalInputs = document.querySelectorAll('.additional-chat-id');
+      let chatIds = [mainInput.value];
+
+      additionalInputs.forEach(input => {
+          if (input.value.trim()) {
+              chatIds.push(input.value.trim());
+          }
+      });
+
+      // In a real app, you would update a hidden input or store this value
+      console.log('Chat IDs:', chatIds);
+  }
+
+  // Handle recipient list selection
+  document.getElementById('recipient_list').addEventListener('change', function() {
+      const listName = this.value;
+      if (!listName) return;
+
+      // In a real app, you would fetch this from the server
+      // For now, we'll use the mock data
+      const recipientLists = {
+          {% for list_name, recipients in recipient_lists.items() %}
+          "{{ list_name }}": {{ recipients|tojson }},
+          {% endfor %}
+      };
+
+      const recipients = recipientLists[listName] || [];
+      populateRecipientsTable(recipients);
+      document.getElementById('recipients').value = JSON.stringify(recipients);
+  });
+
+  // Populate recipients table
+  function populateRecipientsTable(recipients) {
+      const tbody = document.querySelector('#recipients-table tbody');
+      tbody.innerHTML = '';
+
+      recipients.forEach((recipient, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+              <td><input type="text" class="recipient-name" value="${recipient.name}" placeholder="Имя"></td>
+              <td><input type="email" class="recipient-email" value="${recipient.email}" placeholder="Email"></td>
+              <td><input type="text" class="recipient-description" value="${recipient.description}" placeholder="Описание"></td>
+              <td>
+                  <button type="button" class="btn-icon btn-remove-row" data-index="${index}">×</button>
+              </td>
+          `;
+          tbody.appendChild(row);
+      });
+
+      // Add event listeners for remove buttons
+      document.querySelectorAll('.btn-remove-row').forEach(button => {
+          button.addEventListener('click', function() {
+              const row = this.closest('tr');
+              row.parentNode.removeChild(row);
+              updateRecipientsJson();
+          });
+      });
+
+      // Add event listeners for input changes
+      document.querySelectorAll('#recipients-table input').forEach(input => {
+          input.addEventListener('change', updateRecipientsJson);
+      });
+  }
+
+  // Add new recipient row
+  document.getElementById('add-recipient-row').addEventListener('click', function() {
+      const tbody = document.querySelector('#recipients-table tbody');
+      const row = document.createElement('tr');
+      const index = tbody.children.length;
+
+      row.innerHTML = `
+          <td><input type="text" class="recipient-name" placeholder="Имя"></td>
+          <td><input type="email" class="recipient-email" placeholder="Email"></td>
+          <td><input type="text" class="recipient-description" placeholder="Описание"></td>
+          <td>
+              <button type="button" class="btn-icon btn-remove-row" data-index="${index}">×</button>
+          </td>
+      `;
+      tbody.appendChild(row);
+
+      // Add event listeners
+      row.querySelector('.btn-remove-row').addEventListener('click', function() {
+          tbody.removeChild(row);
+          updateRecipientsJson();
+      });
+
+      row.querySelectorAll('input').forEach(input => {
+          input.addEventListener('change', updateRecipientsJson);
+      });
+  });
+
+  // Update recipients JSON
+  function updateRecipientsJson() {
+      const rows = document.querySelectorAll('#recipients-table tbody tr');
+      const recipients = [];
+
+      rows.forEach(row => {
+          const name = row.querySelector('.recipient-name').value.trim();
+          const email = row.querySelector('.recipient-email').value.trim();
+          const description = row.querySelector('.recipient-description').value.trim();
+
+          if (name || email) {
+              recipients.push({
+                  name: name,
+                  email: email,
+                  description: description
+              });
+          }
+      });
+
+      document.getElementById('recipients').value = JSON.stringify(recipients);
+  }
+
+  // Handle email template selection
+  document.getElementById('email_template_select').addEventListener('change', function() {
+      const templateName = this.value;
+      if (!templateName) return;
+
+      // In a real app, you would fetch this from the server
+      // For now, we'll use the mock data
+      const emailTemplates = {
+          {% for template_name, template in email_templates.items() %}
+          "{{ template_name }}": `{{ template|replace('\n', '\\n') }}`,
+          {% endfor %}
+      };
+
+      document.getElementById('email_template').value = emailTemplates[templateName] || '';
+  });
+
+  // Handle telegram template selection
+  document.getElementById('telegram_template_select').addEventListener('change', function() {
+      const templateName = this.value;
+      if (!templateName) return;
+
+      // In a real app, you would fetch this from the server
+      // For now, we'll use the mock data
+      const telegramTemplates = {
+          {% for template_name, template in telegram_templates.items() %}
+          "{{ template_name }}": `{{ template|replace('\n', '\\n') }}`,
+          {% endfor %}
+      };
+
+      document.getElementById('telegram_template').value = telegramTemplates[templateName] || '';
+  });
+
+  // Toggle upload recipients form
+  document.getElementById('upload-recipients-btn').addEventListener('click', function() {
+      const form = document.getElementById('upload-recipients-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Toggle upload email template form
+  document.getElementById('upload-email-template-btn').addEventListener('click', function() {
+      const form = document.getElementById('upload-email-template-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Toggle upload telegram template form
+  document.getElementById('upload-telegram-template-btn').addEventListener('click', function() {
+      const form = document.getElementById('upload-telegram-template-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Handle recipients upload
+  document.getElementById('submit-recipients').addEventListener('click', async function() {
+      const fileInput = document.getElementById('recipients-file');
+      const listName = document.getElementById('list-name').value.trim();
+
+      if (!fileInput.files.length) {
+          alert('Пожалуйста, выберите файл');
+          return;
+      }
+
+      if (!listName) {
+          alert('Пожалуйста, введите название списка');
+          return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('list_name', listName);
+
+      try {
+          const response = await fetch('/uploads/recipients', {
+              method: 'POST',
+              body: formData
+          });
+
+          if (response.ok) {
+              const data = await response.json();
+              alert('Получатели успешно загружены');
+
+              // Add to select dropdown
+              const option = document.createElement('option');
+              option.value = data.list_name;
+              option.textContent = data.list_name.charAt(0).toUpperCase() + data.list_name.slice(1);
+              document.getElementById('recipient_list').appendChild(option);
+
+              // Select the new option
+              document.getElementById('recipient_list').value = data.list_name;
+
+              // Populate table
+              populateRecipientsTable(data.recipients);
+              document.getElementById('recipients').value = JSON.stringify(data.recipients);
+
+              // Hide form
+              document.getElementById('upload-recipients-form').style.display = 'none';
+          } else {
+              alert('Ошибка при загрузке получателей');
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          alert('Ошибка при загрузке получателей');
+      }
+  });
+
+  // Handle email template upload
+  document.getElementById('submit-email-template').addEventListener('click', async function() {
+      const fileInput = document.getElementById('email-template-file');
+      const templateName = document.getElementById('email-template-name').value.trim();
+
+      if (!fileInput.files.length) {
+          alert('Пожалуйста, выберите файл');
+          return;
+      }
+
+      if (!templateName) {
+          alert('Пожалуйста, введите название шаблона');
+          return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('template_name', templateName);
+      formData.append('template_type', 'email');
+
+      try {
+          const response = await fetch('/uploads/template', {
+              method: 'POST',
+              body: formData
+          });
+
+          if (response.ok) {
+              const data = await response.json();
+              alert('Шаблон успешно загружен');
+
+              // Add to select dropdown
+              const option = document.createElement('option');
+              option.value = data.template_name;
+              option.textContent = data.template_name.charAt(0).toUpperCase() + data.template_name.slice(1);
+              document.getElementById('email_template_select').appendChild(option);
+
+              // Select the new option
+              document.getElementById('email_template_select').value = data.template_name;
+
+              // Set content
+              document.getElementById('email_template').value = data.content;
+
+              // Hide form
+              document.getElementById('upload-email-template-form').style.display = 'none';
+          } else {
+              alert('Ошибка при загрузке шаблона');
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          alert('Ошибка при загрузке шаблона');
+      }
+  });
+
+  // Handle telegram template upload
+  document.getElementById('submit-telegram-template').addEventListener('click', async function() {
+      const fileInput = document.getElementById('telegram-template-file');
+      const templateName = document.getElementById('telegram-template-name').value.trim();
+
+      if (!fileInput.files.length) {
+          alert('Пожалуйста, выберите файл');
+          return;
+      }
+
+      if (!templateName) {
+          alert('Пожалуйста, введите название шаблона');
+          return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('template_name', templateName);
+      formData.append('template_type', 'telegram');
+
+      try {
+          const response = await fetch('/uploads/template', {
+              method: 'POST',
+              body: formData
+          });
+
+          if (response.ok) {
+              const data = await response.json();
+              alert('Шаблон успешно загружен');
+
+              // Add to select dropdown
+              const option = document.createElement('option');
+              option.value = data.template_name;
+              option.textContent = data.template_name.charAt(0).toUpperCase() + data.template_name.slice(1);
+              document.getElementById('telegram_template_select').appendChild(option);
+
+              // Select the new option
+              document.getElementById('telegram_template_select').value = data.template_name;
+
+              // Set content
+              document.getElementById('telegram_template').value = data.content;
+
+              // Hide form
+              document.getElementById('upload-telegram-template-form').style.display = 'none';
+          } else {
+              alert('Ошибка при загрузке шаблона');
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          alert('Ошибка при загрузке шаблона');
+      }
+  });
+});
+</script>
+{% endblock %}
+
