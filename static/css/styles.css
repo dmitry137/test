@@ -432,9 +432,31 @@ textarea {
 }
 
 /* Align the toggle-recipients-table button */
+/* Добавьте стили для кнопки переключения таблицы получателей */
+.toggle-table-btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  margin-top: 0.5rem;
+  text-align: center;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.toggle-table-btn:hover {
+  background-color: rgba(226, 232, 240, 0.5);
+  color: var(--text-color);
+}
+
+/* Удалите старый стиль для toggle-recipients-table */
 #toggle-recipients-table {
-  float: right;
-  margin-top: -30px;
+  float: none;
+  margin-top: 0;
 }
 
 /* Style for the + icon in the create campaign button */
@@ -556,6 +578,10 @@ textarea {
   border: 1px solid rgba(226, 232, 240, 0.6);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px; /* Минимальная высота вместо фиксированной */
+  padding-bottom: 2.2rem; /* Увеличиваем отступ снизу */
 }
 
 .campaign-card::before {
@@ -584,13 +610,20 @@ textarea {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 1.25rem;
+  min-height: 60px; /* Минимальная высота вместо фиксированной */
 }
 
 .campaign-title {
-  font-size: 1.35rem;
+  font-size: 1rem;
   font-weight: 700;
   margin-right: 1rem;
   color: var(--dark-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Ограничение в 2 строки */
+  -webkit-box-orient: vertical;
+  max-width: 70%; /* Ограничение ширины */
 }
 
 .campaign-status {
@@ -601,6 +634,8 @@ textarea {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   box-shadow: var(--shadow-sm);
+  white-space: nowrap; /* Предотвращает перенос текста */
+  flex-shrink: 0; /* Предотвращает сжатие статуса */
 }
 
 .status-running {
@@ -616,10 +651,11 @@ textarea {
 }
 
 .campaign-info {
-  margin-bottom: 1.75rem;
+  margin-bottom: 1rem;
   background-color: rgba(241, 245, 249, 0.5);
   padding: 1rem;
   border-radius: var(--radius);
+  flex-grow: 1; /* Заполняет доступное пространство */
 }
 
 .info-item {
@@ -632,22 +668,30 @@ textarea {
   font-weight: 600;
   color: var(--text-muted);
   width: 5.5rem;
+  flex-shrink: 0; /* Предотвращает сжатие метки */
 }
 
 .info-value {
   flex: 1;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .campaign-actions {
   display: flex;
   gap: 0.85rem;
+  margin-top: auto; /* Прижимает кнопки к низу карточки */
+  flex-wrap: wrap; /* Позволяет кнопкам переноситься на новую строку при необходимости */
 }
 
 .campaign-actions .btn {
   flex: 1;
-  font-size: 0.875rem;
-  padding: 0.65rem 1.25rem;
+  font-size: 0.75rem; /* Уменьшаем размер шрифта */
+  padding: 0.5rem 0.75rem; /* Уменьшаем отступы */
+  white-space: nowrap; /* Предотвращает перенос текста в кнопках */
+  min-width: 0; /* Позволяет кнопкам сжиматься */
 }
 
 /* Empty State */
@@ -843,6 +887,13 @@ textarea.error {
   font-size: 0.75rem;
   margin-top: 0.25rem;
   animation: fadeIn 0.3s ease-out;
+}
+
+/* Добавляем стиль для подсказки под полем ввода */
+.input-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
 }
 
 /* Responsive */

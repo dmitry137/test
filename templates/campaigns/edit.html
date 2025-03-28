@@ -16,90 +16,17 @@
           <h2 class="section-title">Детали кампании</h2>
       </div>
       <div class="section-content">
+          {% if error %}
+          <div class="alert alert-error">
+              {{ error }}
+          </div>
+          {% endif %}
           <div class="form-group">
               <label for="name">Название кампании</label>
               <input type="text" id="name" name="name" required
                      value="{{ campaign.name }}"
-                     placeholder="Введите название кампании">
-          </div>
-      </div>
-  </div>
-
-  <!-- Sending Settings -->
-  <div class="form-section collapsible">
-      <div class="section-header">
-          <h2 class="section-title">Настройки отправки</h2>
-          <button type="button" class="btn-collapse" aria-label="Toggle section">
-              <span class="collapse-icon">▼</span>
-          </button>
-      </div>
-      <div class="section-content">
-          <!-- Email Settings -->
-          <div class="subsection">
-              <h3 class="subsection-title">Email</h3>
-              <div class="form-group">
-                  <label for="password_mail">PASSWORD_MAIL</label>
-                  <input type="password" id="password_mail" name="password_mail"
-                         value="{{ campaign.settings.email.password_mail }}"
-                         placeholder="Пароль приложения для email">
-              </div>
-              <div class="form-group">
-                  <label for="sender_mail">SENDER_MAIL</label>
-                  <input type="email" id="sender_mail" name="sender_mail"
-                         value="{{ campaign.settings.email.sender_mail }}"
-                         placeholder="Email отправителя">
-              </div>
-              <div class="form-group">
-                  <label for="subject">SUBJECT</label>
-                  <input type="text" id="subject" name="subject"
-                         value="{{ campaign.settings.email.subject }}"
-                         placeholder="Тема письма">
-              </div>
-          </div>
-
-          <!-- Telegram Settings -->
-          <div class="subsection">
-              <h3 class="subsection-title">Telegram</h3>
-              <div class="form-group">
-                  <label for="bot_token">BOT_TOKEN</label>
-                  <input type="text" id="bot_token" name="bot_token"
-                         value="{{ campaign.settings.telegram.bot_token }}"
-                         placeholder="Токен бота Telegram">
-              </div>
-              <div class="form-group">
-                  <label for="target_chat_id">TARGET_CHAT_ID</label>
-                  <div class="input-with-button">
-                      <input type="text" id="target_chat_id" name="target_chat_id"
-                             value="{{ campaign.settings.telegram.target_chat_id }}"
-                             placeholder="ID чата">
-                      <button type="button" class="btn-add" id="add-chat-id">+</button>
-                  </div>
-                  <div id="chat-ids-container" class="multi-input-container">
-                      <!-- Additional chat IDs will be added here -->
-                  </div>
-              </div>
-              <div class="form-group">
-                  <label for="file_order">FILE_ORDER</label>
-                  <textarea id="file_order" name="file_order"
-                            placeholder="Порядок отправки файлов">{{ campaign.settings.telegram.file_order }}</textarea>
-              </div>
-          </div>
-
-          <!-- S3 Settings -->
-          <div class="subsection">
-              <h3 class="subsection-title">S3</h3>
-              <div class="form-group">
-                  <label for="send_timeout">SEND_TIMEOUT</label>
-                  <input type="number" id="send_timeout" name="send_timeout"
-                         min="5" value="{{ campaign.settings.s3.send_timeout }}"
-                         placeholder="Интервал между опросами S3 (мин. 5)">
-              </div>
-              <div class="form-group">
-                  <label for="delay_send">DELAY_SEND</label>
-                  <input type="number" id="delay_send" name="delay_send"
-                         min="1" value="{{ campaign.settings.s3.delay_send }}"
-                         placeholder="Задержка между загрузкой и отправкой (мин. 1)">
-              </div>
+                     placeholder="Введите название кампании" maxlength="20">
+              <div class="input-hint">Максимум 20 символов</div>
           </div>
       </div>
   </div>
@@ -147,7 +74,7 @@
 
               <div class="form-group">
                   <label for="recipients-table">Таблица получателей</label>
-                  <button type="button" id="toggle-recipients-table">
+                  <button type="button" id="toggle-recipients-table" class="toggle-table-btn">
                       Показать получателей
                   </button>
                   <div id="recipients-table-container" style="display: none;">
@@ -161,7 +88,7 @@
                               </tr>
                           </thead>
                           <tbody>
-                              <!-- Recipients will be added here -->
+                              {% for recipient in campaign.recipients %} <tr> <td> <input type="text" class="recipient-name" value="{{ recipient.name }}" placeholder="Имя"> </td> <td> <input type="email" class="recipient-email" value="{{ recipient.email }}" placeholder="Email"> </td> <td> <input type="text" class="recipient-description" value="{{ recipient.description }}" placeholder="Описание"> </td> <td> <button type="button" class="btn-icon btn-remove-row" data-index="{{ loop.index0 }}">×</button> </td> </tr> {% endfor %}
                           </tbody>
                       </table>
                       <button type="button" class="btn btn-secondary" id="add-recipient-row">
@@ -171,7 +98,7 @@
               </div>
 
               <!-- Hidden input to store recipients JSON -->
-              <input type="hidden" id="recipients" name="recipients" value="{{ campaign.recipients|tojson }}">
+              <input type="hidden" id="recipients" name="recipients" value="{{ campaign.recipients|tojson|safe }}">
           </div>
 
           <!-- Email Template -->
@@ -254,6 +181,118 @@
       </div>
   </div>
 
+  <!-- Sending Settings -->
+  <div class="form-section collapsible collapsed">
+      <div class="section-header">
+          <h2 class="section-title">Настройки отправки</h2>
+          <button type="button" class="btn-collapse" aria-label="Toggle section">
+              <span class="collapse-icon">►</span>
+          </button>
+      </div>
+      <div class="section-content" style="display: none;">
+          <!-- Settings Templates -->
+          <div class="subsection">
+              <h3 class="subsection-title">Шаблоны настроек</h3>
+              <div class="form-group">
+                  <label for="settings_template_select">Шаблон настроек</label>
+                  <select id="settings_template_select" class="form-select">
+                      <option value="">Выберите шаблон настроек</option>
+                      {% for template_name, template in settings_templates.items() %}
+                      <option value="{{ template_name }}">{{ template_name|capitalize }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+
+              <div class="form-group">
+                  <button type="button" class="btn btn-secondary" id="upload-settings-btn">
+                      Загрузить настройки
+                  </button>
+                  <div id="upload-settings-form" class="upload-form" style="display: none;">
+                      <div class="form-group">
+                          <label for="settings-file">Загрузить файл (TXT)</label>
+                          <input type="file" id="settings-file" accept=".txt">
+                      </div>
+                      <div class="form-group">
+                          <label for="settings-name">Название шаблона настроек</label>
+                          <input type="text" id="settings-name" placeholder="Введите название шаблона настроек">
+                      </div>
+                      <button type="button" class="btn btn-primary" id="submit-settings">
+                          Загрузить
+                      </button>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Email Settings -->
+          <div class="subsection">
+              <h3 class="subsection-title">Email</h3>
+              <div class="form-group">
+                  <label for="password_mail">PASSWORD_MAIL</label>
+                  <input type="password" id="password_mail" name="password_mail"
+                         value="{{ campaign.settings.email.password_mail }}"
+                         placeholder="Пароль приложения для email">
+              </div>
+              <div class="form-group">
+                  <label for="sender_mail">SENDER_MAIL</label>
+                  <input type="email" id="sender_mail" name="sender_mail"
+                         value="{{ campaign.settings.email.sender_mail }}"
+                         placeholder="Email отправителя">
+              </div>
+              <div class="form-group">
+                  <label for="subject">SUBJECT</label>
+                  <input type="text" id="subject" name="subject"
+                         value="{{ campaign.settings.email.subject }}"
+                         placeholder="Тема письма">
+              </div>
+          </div>
+
+          <!-- Telegram Settings -->
+          <div class="subsection">
+              <h3 class="subsection-title">Telegram</h3>
+              <div class="form-group">
+                  <label for="bot_token">BOT_TOKEN</label>
+                  <input type="text" id="bot_token" name="bot_token"
+                         value="{{ campaign.settings.telegram.bot_token }}"
+                         placeholder="Токен бота Telegram">
+              </div>
+              <div class="form-group">
+                  <label for="target_chat_id">TARGET_CHAT_ID</label>
+                  <div class="input-with-button">
+                      <input type="text" id="target_chat_id" name="target_chat_id"
+                             value="{{ campaign.settings.telegram.target_chat_id }}"
+                             placeholder="ID чата">
+                      <button type="button" class="btn-add" id="add-chat-id">+</button>
+                  </div>
+                  <div id="chat-ids-container" class="multi-input-container">
+                      <!-- Additional chat IDs will be added here -->
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="file_order">FILE_ORDER</label>
+                  <textarea id="file_order" name="file_order"
+                            placeholder="Порядок отправки файлов">{{ campaign.settings.telegram.file_order }}</textarea>
+              </div>
+          </div>
+
+          <!-- S3 Settings -->
+          <div class="subsection">
+              <h3 class="subsection-title">S3</h3>
+              <div class="form-group">
+                  <label for="send_timeout">SEND_TIMEOUT</label>
+                  <input type="number" id="send_timeout" name="send_timeout"
+                         min="5" value="{{ campaign.settings.s3.send_timeout }}"
+                         placeholder="Интервал между опросами S3 (мин. 5)">
+              </div>
+              <div class="form-group">
+                  <label for="delay_send">DELAY_SEND</label>
+                  <input type="number" id="delay_send" name="delay_send"
+                         min="1" value="{{ campaign.settings.s3.delay_send }}"
+                         placeholder="Задержка между загрузкой и отправкой (мин. 1)">
+              </div>
+          </div>
+      </div>
+  </div>
+
   <div class="form-actions">
       <a href="/campaigns" class="btn btn-secondary">Назад</a>
       <button type="submit" class="btn btn-primary">Сохранить изменения</button>
@@ -263,6 +302,41 @@
 
 {% block extra_js %}
 <script>
+// Изменим обработчик отправки формы, чтобы проверять наличие получателей
+document.querySelector('.campaign-form').addEventListener('submit', function(event) {
+  updateRecipientsJson();
+
+  // Проверка на наличие получателей
+  const recipients = JSON.parse(document.getElementById('recipients').value || '[]');
+  if (!recipients || recipients.length === 0) {
+      event.preventDefault();
+
+      // Добавляем сообщение об ошибке вверху страницы
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'alert alert-error';
+      errorDiv.textContent = 'Необходимо заполнить список получателей';
+
+      const contentDiv = document.querySelector('.section-content');
+      if (contentDiv.querySelector('.alert-error')) {
+          contentDiv.querySelector('.alert-error').remove();
+      }
+      contentDiv.insertBefore(errorDiv, contentDiv.firstChild);
+
+      // Показываем таблицу получателей, если она скрыта
+      const container = document.getElementById('recipients-table-container');
+      if (container.style.display === 'none') {
+          container.style.display = 'block';
+          document.getElementById('toggle-recipients-table').textContent = 'Скрыть получателей';
+      }
+
+      // Прокручиваем к таблице получателей
+      document.querySelector('.subsection:first-child').scrollIntoView({ behavior: 'smooth' });
+
+      return false;
+  }
+});
+
+// Изменим инициализацию страницы, чтобы всегда показывать таблицу получателей при наличии данных
 document.addEventListener('DOMContentLoaded', function() {
   // Toggle collapsible sections
   document.querySelectorAll('.btn-collapse').forEach(button => {
@@ -306,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const input = document.createElement('div');
       input.className = 'multi-input-item';
       input.innerHTML = `
-          <input type="text" class="additional-chat-id" placeholder="Дополнительный ID чата">
+          <input type="text" class="additional-chat-id" name="additional_chat_ids" placeholder="Дополнительный ID чата">
           <button type="button" class="btn-remove">×</button>
       `;
       container.appendChild(input);
@@ -351,19 +425,38 @@ document.addEventListener('DOMContentLoaded', function() {
       const recipients = recipientLists[listName] || [];
       populateRecipientsTable(recipients);
       document.getElementById('recipients').value = JSON.stringify(recipients);
+
+      // Показываем таблицу получателей, если она скрыта
+      const container = document.getElementById('recipients-table-container');
+      if (container.style.display === 'none') {
+          container.style.display = 'block';
+          document.getElementById('toggle-recipients-table').textContent = 'Скрыть получателей';
+      }
   });
 
   // Populate recipients table
   function populateRecipientsTable(recipients) {
+      if (!recipients || !Array.isArray(recipients)) {
+          console.error('Invalid recipients data:', recipients);
+          return;
+      }
+
+      console.log('Populating table with recipients:', recipients);
+
       const tbody = document.querySelector('#recipients-table tbody');
       tbody.innerHTML = '';
 
       recipients.forEach((recipient, index) => {
+          // Защита от некорректных данных
+          const name = recipient && recipient.name ? recipient.name : '';
+          const email = recipient && recipient.email ? recipient.email : '';
+          const description = recipient && recipient.description ? recipient.description : '';
+
           const row = document.createElement('tr');
           row.innerHTML = `
-              <td><input type="text" class="recipient-name" value="${recipient.name}" placeholder="Имя"></td>
-              <td><input type="email" class="recipient-email" value="${recipient.email}" placeholder="Email"></td>
-              <td><input type="text" class="recipient-description" value="${recipient.description}" placeholder="Описание"></td>
+              <td><input type="text" class="recipient-name" value="${name}" placeholder="Имя"></td>
+              <td><input type="email" class="recipient-email" value="${email}" placeholder="Email"></td>
+              <td><input type="text" class="recipient-description" value="${description}" placeholder="Описание"></td>
               <td>
                   <button type="button" class="btn-icon btn-remove-row" data-index="${index}">×</button>
               </td>
@@ -411,6 +504,9 @@ document.addEventListener('DOMContentLoaded', function() {
       row.querySelectorAll('input').forEach(input => {
           input.addEventListener('change', updateRecipientsJson);
       });
+
+      // Update JSON immediately after adding a row
+      updateRecipientsJson();
   });
 
   // Update recipients JSON
@@ -467,6 +563,40 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('telegram_template').value = telegramTemplates[templateName] || '';
   });
 
+  // Handle settings template selection
+  document.getElementById('settings_template_select').addEventListener('change', function() {
+      const templateName = this.value;
+      if (!templateName) return;
+
+      // In a real app, you would fetch this from the server
+      // For now, we'll use the mock data
+      const settingsTemplates = {
+          {% for template_name, template in settings_templates.items() %}
+          "{{ template_name }}": {{ template|tojson }},
+          {% endfor %}
+      };
+
+      const settings = settingsTemplates[templateName] || {};
+
+      // Fill in the settings fields
+      if (settings.email) {
+          document.getElementById('password_mail').value = settings.email.password_mail || '';
+          document.getElementById('sender_mail').value = settings.email.sender_mail || '';
+          document.getElementById('subject').value = settings.email.subject || '';
+      }
+
+      if (settings.telegram) {
+          document.getElementById('bot_token').value = settings.telegram.bot_token || '';
+          document.getElementById('target_chat_id').value = settings.telegram.target_chat_id || '';
+          document.getElementById('file_order').value = settings.telegram.file_order || '';
+      }
+
+      if (settings.s3) {
+          document.getElementById('send_timeout').value = settings.s3.send_timeout || 30;
+          document.getElementById('delay_send').value = settings.s3.delay_send || 5;
+      }
+  });
+
   // Toggle upload recipients form
   document.getElementById('upload-recipients-btn').addEventListener('click', function() {
       const form = document.getElementById('upload-recipients-form');
@@ -482,6 +612,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Toggle upload telegram template form
   document.getElementById('upload-telegram-template-btn').addEventListener('click', function() {
       const form = document.getElementById('upload-telegram-template-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Toggle upload settings form
+  document.getElementById('upload-settings-btn').addEventListener('click', function() {
+      const form = document.getElementById('upload-settings-form');
       form.style.display = form.style.display === 'none' ? 'block' : 'none';
   });
 
@@ -644,14 +780,118 @@ document.addEventListener('DOMContentLoaded', function() {
       }
   });
 
-  // Initialize with existing recipients
-  const recipients = JSON.parse(document.getElementById('recipients').value);
-  if (recipients.length > 0) {
-      document.getElementById('recipients-table-container').style.display = 'block';
+  // Handle settings upload
+  document.getElementById('submit-settings').addEventListener('click', async function() {
+      const fileInput = document.getElementById('settings-file');
+      const templateName = document.getElementById('settings-name').value.trim();
+
+      if (!fileInput.files.length) {
+          alert('Пожалуйста, выберите файл');
+          return;
+      }
+
+      if (!templateName) {
+          alert('Пожалуйста, введите название шаблона настроек');
+          return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('template_name', templateName);
+      formData.append('template_type', 'settings');
+
+      try {
+          const response = await fetch('/uploads/settings', {
+              method: 'POST',
+              body: formData
+          });
+
+          if (response.ok) {
+              const data = await response.json();
+              alert('Настройки успешно загружены');
+
+              // Add to select dropdown
+              const option = document.createElement('option');
+              option.value = data.template_name;
+              option.textContent = data.template_name.charAt(0).toUpperCase() + data.template_name.slice(1);
+              document.getElementById('settings_template_select').appendChild(option);
+
+              // Select the new option
+              document.getElementById('settings_template_select').value = data.template_name;
+
+              // Apply settings
+              if (data.settings) {
+                  if (data.settings.email) {
+                      document.getElementById('password_mail').value = data.settings.email.password_mail || '';
+                      document.getElementById('sender_mail').value = data.settings.email.sender_mail || '';
+                      document.getElementById('subject').value = data.settings.email.subject || '';
+                  }
+
+                  if (data.settings.telegram) {
+                      document.getElementById('bot_token').value = data.settings.telegram.bot_token || '';
+                      document.getElementById('target_chat_id').value = data.settings.telegram.target_chat_id || '';
+                      document.getElementById('file_order').value = data.settings.telegram.file_order || '';
+                  }
+
+                  if (data.settings.s3) {
+                      document.getElementById('send_timeout').value = data.settings.s3.send_timeout || 30;
+                      document.getElementById('delay_send').value = data.settings.s3.delay_send || 5;
+                  }
+              }
+
+              // Hide form
+              document.getElementById('upload-settings-form').style.display = 'none';
+          } else {
+              alert('Ошибка при загрузке настроек');
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          alert('Ошибка при загрузке настроек');
+      }
+  });
+
+  // Инициализация таблицы получателей при загрузке страницы
+  try {
+    // Получаем данные из скрытого поля
+    const recipientsValue = document.getElementById('recipients').value;
+    console.log('Raw recipients value:', recipientsValue);
+
+    // Парсим JSON
+    const recipients = JSON.parse(recipientsValue || '[]');
+    console.log('Parsed recipients:', recipients);
+
+    // Если есть получатели, показываем таблицу и заполняем её
+    if (recipients && recipients.length > 0) {
+      // Показываем таблицу
+      const container = document.getElementById('recipients-table-container');
+      container.style.display = 'block';
       document.getElementById('toggle-recipients-table').textContent = 'Скрыть получателей';
+
+      // Заполняем таблицу данными
       populateRecipientsTable(recipients);
+    }
+  } catch (error) {
+    console.error('Error initializing recipients table:', error);
   }
+
+  // Добавляем обработчики событий для кнопок удаления, которые уже есть в DOM при загрузке страницы
+  document.querySelectorAll('#recipients-table .btn-remove-row').forEach(button => {
+    button.addEventListener('click', function() {
+      const row = this.closest('tr');
+      row.parentNode.removeChild(row);
+      updateRecipientsJson();
+    });
+  });
+
+  // Добавляем обработчики событий для полей ввода, которые уже есть в DOM при загрузке страницы
+  document.querySelectorAll('#recipients-table input').forEach(input => {
+    input.addEventListener('change', updateRecipientsJson);
+  });
+
+  // Обновляем JSON при загрузке страницы, чтобы учесть предварительно отрендеренные строки
+  updateRecipientsJson();
 });
 </script>
 {% endblock %}
+
 

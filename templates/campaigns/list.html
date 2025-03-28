@@ -32,12 +32,13 @@
           </div>
       </div>
 
+      <!-- Изменим разметку кнопок, чтобы они лучше помещались в карточку -->
       <div class="campaign-actions">
           <button class="btn btn-toggle" data-action="toggle" data-status="{{ campaign.status }}">
               {% if campaign.status == "running" %}
-              Остановить кампанию
+              Остановить
               {% else %}
-              Запустить кампанию
+              Запустить
               {% endif %}
           </button>
           <a href="/campaigns/{{ campaign.id }}/edit" class="btn btn-secondary">
