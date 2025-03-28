@@ -4,12 +4,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
-from fastapi.security import OAuth2PasswordRequestForm
 import uvicorn
 from pathlib import Path
 
 # Import routers
-from routers import auth, campaigns, uploads
+from app.routers import auth, campaigns, uploads
 
 
 app = FastAPI(title="Campaign Management System",

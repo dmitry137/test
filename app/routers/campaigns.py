@@ -6,7 +6,7 @@ from typing import List, Optional, Dict
 import json
 from datetime import datetime
 
-from routers.auth import get_current_user, User
+from app.routers.auth import get_current_user, User
 
 router = APIRouter(tags=["campaigns"])
 templates = Jinja2Templates(directory="templates")

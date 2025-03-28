@@ -4,7 +4,7 @@ import csv
 import io
 from typing import List
 
-from routers.auth import get_current_user, User
+from app.routers.auth import get_current_user, User
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
